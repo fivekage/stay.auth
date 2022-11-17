@@ -37,8 +37,9 @@ app.get("/verify", async function (req, res) {
     return res.send(err);
   }
 });
-
-initializeSwagger(app);
+if (process.env.NODE_ENV === "development") {
+  initializeSwagger(app);
+}
 
 app.listen(process.env.PORT);
 console.log(`Listening on port ${process.env.PORT}`);
