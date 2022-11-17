@@ -1,0 +1,50 @@
+name: cd-auth
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  job_id:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      PORT: 8080
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: "auth"
+        name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v0"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
+
+      # Authenticate Docker to Google Cloud Artifact Registry
+      - name: Docker Auth
+        id: docker-auth
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_LOCATION }}-docker.pkg.dev
+
+      - name: Build and Push Container
+        run: |
+          docker build -t ${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.GAR_IMAGE }}:${{ github.sha }} .
+          docker push ${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.GAR_IMAGE }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: ${{ secrets.SERVICE }}
+          region: ${{ secrets.REGION }}
+          flags: "--allow-unauthenticated"
+          image: ${{ secrets.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.GAR_IMAGE }}:${{ github.sha }}
+
+      # If required, use the Cloud Run url output in later steps
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}
