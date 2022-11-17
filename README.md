@@ -7,6 +7,15 @@
 
 ## How to use
 
+**Environment variables **:
+
+```
+NODE_ENV=<development|production>
+GOOGLE_APPLICATION_CREDENTIALS=<File path or content of GCP credentials>
+PORT=<Port to listen>
+GOOGLE_CLOUD_PROJECT=<Firebase project ID>
+```
+
 Call the endpoint with a token in the header
 
 `https://exampledomain.com/verify`

@@ -17,6 +17,7 @@ jobs:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
       PORT: 8080
       NODE_ENV: ${{ secrets.NODE_ENV }}
+      REGION: ${{ secrets.GCP_LOCATION }}
     steps:
       - uses: actions/checkout@v3
 
@@ -42,7 +43,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v0
         with:
           service: ${{ secrets.GCP_SERVICE }}
-          region: ${{ secrets.GCP_REGION }}
+          region: ${{ env.REGION }}
           flags: "--allow-unauthenticated"
           image: ${{ secrets.GCP_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.GAR_REPOSITORY }}/${{ secrets.GAR_IMAGE }}:${{ github.sha }}
 

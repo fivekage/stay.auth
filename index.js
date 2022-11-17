@@ -2,7 +2,10 @@ const express = require("express");
 const app = express();
 
 const firebaseAdmin = require("firebase-admin");
-firebaseAdmin.initializeApp();
+firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.credential.applicationDefault(),
+  databaseURL: `https://${process.env.GOOGLE_CLOUD_PROJECT}.firebaseio.com`,
+});
 
 const { initializeSwagger } = require("./swagger.js");
 
@@ -24,7 +27,7 @@ app.get("/verify", async function (req, res) {
 
   if (!authHeader) {
     res.status(401);
-    return next("Unauthorized");
+    return res.send("Unauthorized");
   }
 
   try {
